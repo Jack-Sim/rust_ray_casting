@@ -54,4 +54,34 @@ impl Particle {
             self.pos_y = 0.0;
         }
     }
+
+    pub fn view_field(&self, view_angle: usize, start: usize) -> Vec<usize> {
+        // A function to return a vector of the particle positions that are in the field of view
+        // for the frame
+        // Arguements:
+        // Particle object
+        // view_angle: usize, integer for the width of the field of view
+        // start: usize, The starting angle for the view
+        let mut output: Vec<usize> = vec![];
+        let end_angle = start + view_angle;
+        if end_angle < 360 {
+            for i in start..end_angle {
+                let new_i_1 = i * 2;
+                let new_i_2 = i * 2 + 1;
+                output.append(&mut vec![new_i_1, new_i_2]);
+            }
+        } else if end_angle >= 360 {
+            for i in start..360 {
+                let new_i_1 = i * 2;
+                let new_i_2 = i * 2 + 1;
+                output.append(&mut vec![new_i_1, new_i_2]);
+            }
+            for i in 0..(end_angle - 360) {
+                let new_i_1 = i * 2;
+                let new_i_2 = i * 2 + 1;
+                output.append(&mut vec![new_i_1, new_i_2]);
+            }
+        }
+        return output;
+    }
 }

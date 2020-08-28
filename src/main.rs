@@ -8,7 +8,7 @@ mod boundary;
 mod ray;
 mod particle;
 
-pub const WIDTH: u32 = 640;
+pub const WIDTH: u32 = 1280;
 pub const HEIGHT: u32 = 640;
 pub const LINE_COL: [f32;4] = [1.0, 1.0, 1.0, 1.0];
 pub const LINE_SIZE: f64 = 1.0;
@@ -19,16 +19,20 @@ fn main() {
     let mut my_particle = particle::Particle::new(100.0, 300.0);
     
     // Create 5 new boundaries with random positions on the window;
-    let mut my_boundaries: [boundary::Boundary; 5] = [boundary::Boundary::new(0.0, 0.0, 0.0, 0.0); 5];
+    let mut my_boundaries: [boundary::Boundary; 9] = [boundary::Boundary::new(0.0, 0.0, 0.0, 0.0); 9];
     let mut rng = rand::thread_rng();
-    for n in 1..5 {
-        let x1: f64 = rng.gen_range(0, WIDTH) as f64;
+    let mut start_angle = 0;
+    for n in 0..5 {
+        let x1: f64 = rng.gen_range(0, WIDTH / 2) as f64;
         let y1: f64 = rng.gen_range(0, HEIGHT) as f64;
-        let x2: f64 = rng.gen_range(0, WIDTH) as f64;
+        let x2: f64 = rng.gen_range(0, WIDTH / 2) as f64;
         let y2: f64 = rng.gen_range(0, HEIGHT) as f64;
         my_boundaries[n] = boundary::Boundary::new(x1,y1,x2,y2);
     }
-
+    my_boundaries[5] = boundary::Boundary::new(0.0, 0.0, 0.0, HEIGHT as f64);
+    my_boundaries[6] = boundary::Boundary::new(0.0, 0.0, WIDTH as f64 / 2.0, 0.0);
+    my_boundaries[7] = boundary::Boundary::new(WIDTH as f64 / 2.0, 0.0, WIDTH as f64 / 2.0, HEIGHT as f64);
+    my_boundaries[8] = boundary::Boundary::new(0.0,HEIGHT as f64, WIDTH as f64 / 2.0, HEIGHT as f64);
     // Create the PistonWindow to display the animation;
     // Window title = "Ray Casting", Width and Height equal to constants
     let mut window: PistonWindow = 
@@ -41,7 +45,7 @@ fn main() {
             clear([0.0, 0.0, 0.0, 1.0], g);
             let mut cast_rays: [[f64;2];RAY_COUNT] = [[0.0, 0.0];RAY_COUNT];
             for i in 0..RAY_COUNT {
-                for n in 0..5 {
+                for n in 0..9 {
                     let cast = my_particle.rays[i].cast(&my_boundaries[n]);
                     if cast != [0.0,0.0] {
                         if cast_rays[i] == [0.0, 0.0] {
@@ -56,14 +60,20 @@ fn main() {
                     }
                     
                 }
-                if cast_rays[i] != [0.0, 0.0] {
+                let view_field = my_particle.view_field(90 , start_angle);
+                if cast_rays[i] != [0.0, 0.0] && view_field.contains(&i) {
                     line([1.0, 1.0, 1.0, 0.1], 0.5, [my_particle.rays[i].pos_x, my_particle.rays[i].pos_y, cast_rays[i][0], cast_rays[i][1]], c.transform, g);
                 }
             }
             for n in 0..5{
                 line(LINE_COL, LINE_SIZE, my_boundaries[n].display(), c.transform, g);
             }
-            my_particle.update(WIDTH, HEIGHT); 
+            line(LINE_COL, 5.0, [(WIDTH / 2) as f64, 0.0, (WIDTH / 2) as f64, HEIGHT as f64], c.transform, g);
+            my_particle.update(WIDTH / 2, HEIGHT); 
+            start_angle += 1;
+            if start_angle == 360 {
+                start_angle = 0;
+            }
         });   
     }
 }
